@@ -1,0 +1,102 @@
+package main
+
+import (
+	"fmt"
+	"strconv"
+	"sync"
+)
+
+func main() {
+	howIsTheNumber(4)
+	howIsTheNumber(13)
+	howIsTheNumber(130)
+}
+
+func howIsTheNumber(number int) {
+	var wg sync.WaitGroup
+
+	var even bool
+	var fibonacci bool
+	var prime bool
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		even = isEven(number)
+	}()
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		fibonacci = isFibonacci(number)
+	}()
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		prime = isPrime(number)
+	}()
+	wg.Wait()
+
+	result := "El número " + strconv.FormatInt(int64(number), 10)
+
+	if prime {
+		result += " es primo"
+	} else {
+		result += " no es primo"
+	}
+
+	if fibonacci {
+		result += " ,es fibonacci"
+	} else {
+		result += " ,no es fibonacci"
+	}
+
+	if even {
+		result += " y es par"
+	} else {
+		result += " y es impar"
+	}
+
+	fmt.Println(result)
+}
+
+func isEven(number int) bool {
+	return number%2 == 0
+}
+
+func isFibonacci(number int) bool {
+	fibonacciNumbers := []int{0, 1}
+	for number > fibonacciNumbers[len(fibonacciNumbers)-1] {
+		lastFibonacciNumber := fibonacciNumbers[len(fibonacciNumbers)-2] + fibonacciNumbers[len(fibonacciNumbers)-1]
+		if number == lastFibonacciNumber {
+			return true
+		}
+		fibonacciNumbers = append(fibonacciNumbers, lastFibonacciNumber)
+	}
+
+	return false
+}
+
+func isPrime(number int) bool {
+	var isPrime bool
+	primeNumbers := []int{2}
+	for i := 3; i < number; i++ {
+		isPrime, primeNumbers = isPrimeAux(i, primeNumbers)
+		if isPrime {
+			if (number % i) == 0 {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func isPrimeAux(number int, primeNumbers []int) (bool, []int) {
+	for i := 0; i < len(primeNumbers); i++ {
+		aux := number % primeNumbers[i]
+		if aux == 0 {
+			return false, nil
+		}
+	}
+	primeNumbers = append(primeNumbers, number)
+	return true, primeNumbers
+}
